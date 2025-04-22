@@ -1,0 +1,35 @@
+	.data
+
+$str1:
+	.asciiz "Inicio del programa\n"
+
+$str2:
+	.asciiz "a"
+
+$str3:
+	.asciiz "\n"
+
+$str4:
+	.asciiz "No a y b\n"
+
+$str5:
+	.asciiz "c = "
+
+$str6:
+	.asciiz "\n"
+
+$str7:
+	.asciiz "Final"
+
+$str8:
+	.asciiz "\n"
+
+_a:
+	.word 0
+
+_b:
+	.word 0
+
+_c:
+	.word 0
+
