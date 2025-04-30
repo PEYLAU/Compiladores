@@ -1,9 +1,12 @@
 
 %{
+#define _GNU_SOURCE
 #include <stdio.h>
+#include <string.h>
 #include "listaCodigo.h"
 #include "listaSimbolos.h"
 Lista tablaSimb;
+ListaC tablaCod;
 Tipo tipo; 
 void yyerror();
 void introducirSimbolo();
@@ -12,6 +15,9 @@ void imprimirTabla();
 void escribirSimbenFichero();
 void escribirCodigenFichero();
 int contCadenas=0; 
+char * getReg();
+char * concatenar();
+char * concatenarInt();
 extern int yylex();
 extern int yylineno;
 int reg = 0;
@@ -123,7 +129,7 @@ expression : expression PLUSOP expression {$$ = $1;
 		| LPAREN expression INTERROGANT expression TWODOTS expression RPAREN{$$ = $2;
 			Operacion oper;
 			oper.op = "beqz";
-			sprintf(oper.res,"$l%d", salto_check);
+			oper.res = concatenarInt("$l", salto_check);
 			salto_check++;
 			oper.arg1 = NULL;
 			oper.arg2 = NULL;
@@ -139,7 +145,7 @@ expression : expression PLUSOP expression {$$ = $1;
 		
 			Operacion oper3;
 			oper3.op = "b";
-			sprintf(oper3.res,"$l%d", salto_check);
+			oper3.res = concatenarInt("$l", salto_check);
 			salto_check++;
 			oper3.arg1 = NULL;
 			oper3.arg2 = NULL;
@@ -147,10 +153,11 @@ expression : expression PLUSOP expression {$$ = $1;
 			liberaLC($4);
 
 			Operacion oper4; 
-			sprintf(oper4.op, "$l%d:", salto_check-2);
+			char * temp = concatenarInt("$l", salto_check-2);
+			oper4.op = concatenar(temp, ":");
 			oper4.res = NULL;
 			oper4.arg1 = NULL;
-			oper4.arg2 = NULL; 
+			oper4.arg2 = NULL;
 			insertaLC($$, finalLC($$), oper4);
 		
 			concatenaLC($$,$6); 
@@ -164,17 +171,12 @@ expression : expression PLUSOP expression {$$ = $1;
 			liberaLC($6); 
 		
 			Operacion oper6; 
-			sprintf(oper6.op, "$l%d:", salto_check-1);
+			temp = concatenarInt("$l", salto_check-1);
+			oper6.op = concatenar(temp, ":");
 			oper6.res = NULL;
 			oper6.arg1 = NULL;
 			oper6.arg2 = NULL; 
 			insertaLC($$, finalLC($$), oper6);
-		
-		
-		
-		
-		
-		
 		}
 		| MINUSOP expression %prec UMENOS{$$ = $2;
 			Operacion oper;
@@ -185,26 +187,26 @@ expression : expression PLUSOP expression {$$ = $1;
 			insertaLC($$, finalLC($$), oper);
 			}
         | LPAREN expression RPAREN{$$ = $2;}
-		| INTLITERAL {$$ = creaLC();
-			Operacion oper;
-			oper.op = "li";
-			sprintf(oper.res, "$t%d", reg);
-			reg++;
-			sprintf(oper.arg1, "%d", $1);
-			oper.arg2 = NULL;
+		| INTLITERAL{ 
+			$$ = creaLC();
+			Operacion oper;  
+			oper.op = "li"; 
+			oper.res = getReg(); 
+			oper.arg1 = concatenarInt("_%s", $1);
+			oper.arg2 = NULL; 
 			insertaLC($$, finalLC($$), oper);
-			guardaResLC($$, oper.res);
+			guardaResLC($$, oper.res);			
 			}
-		| ID { if(!perteneceLista($1)) printf("Esta super mal joder\n");
+		| ID { 
+			if(!perteneceLista($1)) printf("Esta super mal joder\n");
 			$$ = creaLC();
 			Operacion oper;  
 			oper.op = "lw"; 
-			sprintf(oper.res, "$t%d", reg);
-			reg++; 
-			sprintf(oper.arg1, "_%s", $1);
+			oper.res = getReg(); 
+			oper.arg1 = concatenar("_%s", $1);
 			oper.arg2 = NULL; 
 			insertaLC($$, finalLC($$), oper);
-			guardaResLC($$, oper.res);				
+			guardaResLC($$, oper.res);			
 			}
 
 
@@ -212,6 +214,28 @@ expression : expression PLUSOP expression {$$ = $1;
 void yyerror()
 {
 printf("Se ha producido un error en esta expresion en la linea %d\n", yylineno);
+}
+
+char *getReg(){
+	char* retval;
+	asprintf(&retval, "$t%d", reg); 
+
+	reg++;
+
+	return retval;
+
+}
+
+char * concatenar(char * s1, char * s2){
+	char * retval;
+	asprintf(&retval, "%s%s", s1, s2);
+	return retval;
+}
+
+char * concatenarInt(char * s1, int n){
+	char * retval;
+	asprintf(&retval, "%s%d", s1, n);
+	return retval;
 }
 
 int perteneceLista(char * nombre){
@@ -241,7 +265,9 @@ void imprimirTabla(Lista tabla){
 		printf("Nombre: %s\n", s.nombre);
 		printf("Tipo: %d\n", s.tipo);
 		printf("Valor: %d\n", s.valor);
+		
 		in = siguienteLS(tabla, in);
+		
 	}
 
 }
@@ -296,7 +322,7 @@ void escribirCodigenFichero(ListaC tabla){
 		fprintf(f, "main:\n\n");
 	}
 	
-	PosicionLista in = inicioLC(tabla);
+	PosicionListaC in = inicioLC(tabla);
 	int n = longitudLC(tabla);
 	
 	for(int i = 0; i < n; i++){
