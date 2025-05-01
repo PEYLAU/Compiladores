@@ -1493,8 +1493,14 @@ yyreduce:
 
   case 21:
 #line 89 "sint.y"
-                                                  {(yyval.codigo) = (yyvsp[-2].codigo);}
+                                                  {(yyval.codigo) = (yyvsp[-2].codigo); imprimirTablaLC((yyval.codigo));}
 #line 1498 "sint.tab.c"
+    break;
+
+  case 22:
+#line 90 "sint.y"
+                                                {(yyval.codigo) = (yyvsp[-2].codigo); imprimirTablaLC((yyval.codigo));}
+#line 1504 "sint.tab.c"
     break;
 
   case 23:
@@ -1502,7 +1508,7 @@ yyreduce:
                         {
 			(yyval.codigo) = (yyvsp[0].codigo);
 		}
-#line 1506 "sint.tab.c"
+#line 1512 "sint.tab.c"
     break;
 
   case 24:
@@ -1512,7 +1518,7 @@ yyreduce:
 			concatenaLC((yyval.codigo),(yyvsp[0].codigo));
 			liberaLC((yyvsp[0].codigo));
 		}
-#line 1516 "sint.tab.c"
+#line 1522 "sint.tab.c"
     break;
 
   case 25:
@@ -1541,7 +1547,7 @@ yyreduce:
 				oper3.arg2 = NULL;
 				insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper3);
 	}
-#line 1545 "sint.tab.c"
+#line 1551 "sint.tab.c"
     break;
 
   case 26:
@@ -1577,7 +1583,7 @@ yyreduce:
 				oper3.arg2 = NULL;
 				insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper3);
 	}
-#line 1581 "sint.tab.c"
+#line 1587 "sint.tab.c"
     break;
 
   case 27:
@@ -1587,7 +1593,7 @@ yyreduce:
 				Operacion oper1;
 				oper1.op = "li";
 				oper1.res = "$v0";
-				oper1.arg1 = concatenarInt("", 1);
+				oper1.arg1 = concatenarInt("", 5);
 				oper1.arg2 = NULL;
 				insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper1);
 
@@ -1605,7 +1611,7 @@ yyreduce:
 				oper3.arg2 = NULL; 
 				insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper3);
 }
-#line 1609 "sint.tab.c"
+#line 1615 "sint.tab.c"
     break;
 
   case 28:
@@ -1615,7 +1621,7 @@ yyreduce:
 				Operacion oper1;
 				oper1.op = "li";
 				oper1.res = "$v0";
-				oper1.arg1 = concatenarInt("", 1);
+				oper1.arg1 = concatenarInt("", 5);
 				oper1.arg2 = NULL;
 				insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper1);
 
@@ -1633,7 +1639,7 @@ yyreduce:
 				oper3.arg2 = NULL; 
 				insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper3);
 	}
-#line 1637 "sint.tab.c"
+#line 1643 "sint.tab.c"
     break;
 
   case 29:
@@ -1648,7 +1654,7 @@ yyreduce:
 			insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper);
 			liberaLC((yyvsp[0].codigo));
 			}
-#line 1652 "sint.tab.c"
+#line 1658 "sint.tab.c"
     break;
 
   case 30:
@@ -1663,7 +1669,7 @@ yyreduce:
 			insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper);
 			liberaLC((yyvsp[0].codigo));
 			}
-#line 1667 "sint.tab.c"
+#line 1673 "sint.tab.c"
     break;
 
   case 31:
@@ -1678,7 +1684,7 @@ yyreduce:
 			insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper);
 			liberaLC((yyvsp[0].codigo));
 			}
-#line 1682 "sint.tab.c"
+#line 1688 "sint.tab.c"
     break;
 
   case 32:
@@ -1693,7 +1699,7 @@ yyreduce:
 			insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper);
 			liberaLC((yyvsp[0].codigo));
 			}
-#line 1697 "sint.tab.c"
+#line 1703 "sint.tab.c"
     break;
 
   case 33:
@@ -1746,7 +1752,7 @@ yyreduce:
 			oper6.arg2 = NULL; 
 			insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper6);
 		}
-#line 1750 "sint.tab.c"
+#line 1756 "sint.tab.c"
     break;
 
   case 34:
@@ -1759,13 +1765,13 @@ yyreduce:
 			oper.arg2 = NULL;
 			insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper);
 			}
-#line 1763 "sint.tab.c"
+#line 1769 "sint.tab.c"
     break;
 
   case 35:
 #line 300 "sint.y"
                                   {(yyval.codigo) = (yyvsp[-1].codigo);}
-#line 1769 "sint.tab.c"
+#line 1775 "sint.tab.c"
     break;
 
   case 36:
@@ -1780,7 +1786,7 @@ yyreduce:
 			insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper);
 			guardaResLC((yyval.codigo), oper.res);			
 			}
-#line 1784 "sint.tab.c"
+#line 1790 "sint.tab.c"
     break;
 
   case 37:
@@ -1796,11 +1802,11 @@ yyreduce:
 			insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper);
 			guardaResLC((yyval.codigo), oper.res);			
 			}
-#line 1800 "sint.tab.c"
+#line 1806 "sint.tab.c"
     break;
 
 
-#line 1804 "sint.tab.c"
+#line 1810 "sint.tab.c"
 
       default: break;
     }

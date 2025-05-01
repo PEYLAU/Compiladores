@@ -86,8 +86,8 @@ statement : ID ASSIGNOP expression SEMICOLON{
 	| IF LPAREN expression RPAREN statement  
 	| IF LPAREN expression RPAREN statement ELSE statement
 	| WHILE LPAREN expression RPAREN statement
-	| PRINT LPAREN print_list RPAREN SEMICOLON{$$ = $3;}
-	| READ LPAREN read_list RPAREN SEMICOLON{$$ = $3};
+	| PRINT LPAREN print_list RPAREN SEMICOLON{$$ = $3; imprimirTablaLC($$);}
+	| READ LPAREN read_list RPAREN SEMICOLON{$$ = $3; imprimirTablaLC($$);}
 	
 print_list : print_item {
 			$$ = $1;
@@ -159,7 +159,7 @@ read_list : ID {  if(!perteneceLista($1)) printf("Esta super mal joder\n");
 				Operacion oper1;
 				oper1.op = "li";
 				oper1.res = "$v0";
-				oper1.arg1 = concatenarInt("", 1);
+				oper1.arg1 = concatenarInt("", 5);
 				oper1.arg2 = NULL;
 				insertaLC($$, finalLC($$), oper1);
 
@@ -182,7 +182,7 @@ read_list : ID {  if(!perteneceLista($1)) printf("Esta super mal joder\n");
 				Operacion oper1;
 				oper1.op = "li";
 				oper1.res = "$v0";
-				oper1.arg1 = concatenarInt("", 1);
+				oper1.arg1 = concatenarInt("", 5);
 				oper1.arg2 = NULL;
 				insertaLC($$, finalLC($$), oper1);
 
