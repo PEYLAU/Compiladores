@@ -12,10 +12,12 @@ void yyerror();
 void introducirSimbolo();
 int perteneceLista();
 void imprimirTabla();
+void imprimirTablaLC();
 void escribirSimbenFichero();
 void escribirCodigenFichero();
 int contCadenas=0; 
 char * getReg();
+char * getSalto();
 char * concatenar();
 char * concatenarInt();
 extern int yylex();
@@ -42,13 +44,13 @@ ListaC codigo;
 
 
 %type <cad> program ID CHARCHAIN
-%type <codigo> expression
+%type <codigo> expression statement_list statement print_list print_item read_list const_list
 
 
 
 %%
 
-program : {tablaSimb = creaLS();} ID LPAREN RPAREN LKEY declarations statement_list RKEY {imprimirTabla(tablaSimb); escribirSimbenFichero(tablaSimb); liberaLS(tablaSimb);}
+program : {tablaSimb = creaLS(); tablaCod = creaLC();} ID LPAREN RPAREN LKEY declarations statement_list RKEY {imprimirTabla(tablaSimb); escribirSimbenFichero(tablaSimb); liberaLS(tablaSimb);}
 
 declarations : declarations VAR {tipo = VARIABLE;} tipo var_list SEMICOLON
 	| declarations CONST {tipo = CONSTANTE;} tipo const_list SEMICOLON
@@ -69,22 +71,135 @@ const_list : ID ASSIGNOP expression { if(!perteneceLista($1)) introducirSimbolo(
 statement_list : statement_list statement
 	| ;
 
-statement : ID ASSIGNOP expression SEMICOLON{ if(!perteneceLista($1)) printf("Esta super mal joder\n");}
-	| LKEY statement_list RKEY
+statement : ID ASSIGNOP expression SEMICOLON{ 
+		if(!perteneceLista($1)) printf("Esta super mal joder\n");
+		$$ = $3;
+		Operacion oper;
+		oper.op = "sw"; 
+		oper.res = recuperaResLC($3); 
+		oper.arg1 = concatenar("_", $1);
+		oper.arg2 = NULL; 
+		insertaLC($$, finalLC($$), oper);	
+		imprimirTablaLC($$);
+	}
+	| LKEY statement_list RKEY {$$ = $2;}
 	| IF LPAREN expression RPAREN statement  
 	| IF LPAREN expression RPAREN statement ELSE statement
 	| WHILE LPAREN expression RPAREN statement
-	| PRINT LPAREN print_list RPAREN SEMICOLON
-	| READ LPAREN read_list RPAREN SEMICOLON;
+	| PRINT LPAREN print_list RPAREN SEMICOLON{$$ = $3;}
+	| READ LPAREN read_list RPAREN SEMICOLON{$$ = $3};
 	
-print_list : print_item
-	| print_list COMMA print_item;
+print_list : print_item {
+			$$ = $1;
+		}
+	| print_list COMMA print_item{
+			$$ = $1;
+			concatenaLC($$,$3);
+			liberaLC($3);
+		}
 	
-print_item : expression
-	| CHARCHAIN {tipo = CADENA; contCadenas++; introducirSimbolo($1, tipo, contCadenas);};
+print_item : expression {
+				$$ = $1;
 	
-read_list : ID {  if(!perteneceLista($1)) printf("Esta super mal joder\n");}
-	| read_list COMMA ID {  if(!perteneceLista($3)) printf("Esta super mal joder\n");}
+				Operacion oper1;
+				oper1.op = "li";
+				oper1.res = "$v0";
+				oper1.arg1 = concatenarInt("", 1);
+				oper1.arg2 = NULL;
+				insertaLC($$, finalLC($$), oper1);
+
+				Operacion oper2;
+				oper2.op = "move";
+				oper2.res = "$a0";
+				oper2.arg1 = recuperaResLC($1);
+				oper2.arg2 = NULL;
+				insertaLC($$, finalLC($$), oper2);
+
+				Operacion oper3;
+				oper3.op = "syscall";
+				oper3.res = NULL;
+				oper3.arg1 = NULL;
+				oper3.arg2 = NULL;
+				insertaLC($$, finalLC($$), oper3);
+	}
+	| CHARCHAIN {tipo = CADENA; contCadenas++; introducirSimbolo($1, tipo, contCadenas);
+				$$ = creaLC();
+				Operacion oper;
+				oper.op = "la";
+				oper.res = getReg();
+				oper.arg1 = concatenarInt("$str", contCadenas);
+				oper.arg2 = NULL;
+				insertaLC($$, finalLC($$), oper);
+				guardaResLC($$, oper.res);
+				
+				Operacion oper1;
+				oper1.op = "li";
+				oper1.res = "$v0";
+				oper1.arg1 = concatenarInt("", 1);
+				oper1.arg2 = NULL;
+				insertaLC($$, finalLC($$), oper1);
+
+				Operacion oper2;
+				oper2.op = "move";
+				oper2.res = "$a0";
+				oper2.arg1 = recuperaResLC($$);
+				oper2.arg2 = NULL;
+				insertaLC($$, finalLC($$), oper2);
+
+				Operacion oper3;
+				oper3.op = "syscall";
+				oper3.res = NULL;
+				oper3.arg1 = NULL;
+				oper3.arg2 = NULL;
+				insertaLC($$, finalLC($$), oper3);
+	}
+	
+read_list : ID {  if(!perteneceLista($1)) printf("Esta super mal joder\n");
+				$$ = creaLC();
+				Operacion oper1;
+				oper1.op = "li";
+				oper1.res = "$v0";
+				oper1.arg1 = concatenarInt("", 1);
+				oper1.arg2 = NULL;
+				insertaLC($$, finalLC($$), oper1);
+
+				Operacion oper2;
+				oper2.op = "syscall";
+				oper2.res = NULL;
+				oper2.arg1 = NULL;
+				oper2.arg2 = NULL;
+				insertaLC($$, finalLC($$), oper2);
+
+				Operacion oper3;
+				oper3.op = "sw"; 
+				oper3.res = "$a0"; 
+				oper3.arg1 = concatenar("_", $1);
+				oper3.arg2 = NULL; 
+				insertaLC($$, finalLC($$), oper3);
+}
+	| read_list COMMA ID {  if(!perteneceLista($3)) printf("Esta super mal joder\n");
+				$$ = $1;
+				Operacion oper1;
+				oper1.op = "li";
+				oper1.res = "$v0";
+				oper1.arg1 = concatenarInt("", 1);
+				oper1.arg2 = NULL;
+				insertaLC($$, finalLC($$), oper1);
+
+				Operacion oper2;
+				oper2.op = "syscall";
+				oper2.res = NULL;
+				oper2.arg1 = NULL;
+				oper2.arg2 = NULL;
+				insertaLC($$, finalLC($$), oper2);
+
+				Operacion oper3;
+				oper3.op = "sw"; 
+				oper3.res = "$a0"; 
+				oper3.arg1 = concatenar("_", $3);
+				oper3.arg2 = NULL; 
+				insertaLC($$, finalLC($$), oper3);
+	}
 	
 expression : expression PLUSOP expression {$$ = $1;
 			concatenaLC($$, $3);
@@ -129,8 +244,7 @@ expression : expression PLUSOP expression {$$ = $1;
 		| LPAREN expression INTERROGANT expression TWODOTS expression RPAREN{$$ = $2;
 			Operacion oper;
 			oper.op = "beqz";
-			oper.res = concatenarInt("$l", salto_check);
-			salto_check++;
+			oper.res = getSalto();
 			oper.arg1 = NULL;
 			oper.arg2 = NULL;
 			insertaLC($$, finalLC($$), oper);
@@ -145,16 +259,14 @@ expression : expression PLUSOP expression {$$ = $1;
 		
 			Operacion oper3;
 			oper3.op = "b";
-			oper3.res = concatenarInt("$l", salto_check);
-			salto_check++;
+			oper3.res = getSalto();
 			oper3.arg1 = NULL;
 			oper3.arg2 = NULL;
 			insertaLC($$, finalLC($$), oper3);
 			liberaLC($4);
 
 			Operacion oper4; 
-			char * temp = concatenarInt("$l", salto_check-2);
-			oper4.op = concatenar(temp, ":");
+			oper4.op = concatenar(oper.res, ":");
 			oper4.res = NULL;
 			oper4.arg1 = NULL;
 			oper4.arg2 = NULL;
@@ -171,8 +283,7 @@ expression : expression PLUSOP expression {$$ = $1;
 			liberaLC($6); 
 		
 			Operacion oper6; 
-			temp = concatenarInt("$l", salto_check-1);
-			oper6.op = concatenar(temp, ":");
+			oper6.op = concatenar(oper3.res, ":");
 			oper6.res = NULL;
 			oper6.arg1 = NULL;
 			oper6.arg2 = NULL; 
@@ -192,7 +303,7 @@ expression : expression PLUSOP expression {$$ = $1;
 			Operacion oper;  
 			oper.op = "li"; 
 			oper.res = getReg(); 
-			oper.arg1 = concatenarInt("_%s", $1);
+			oper.arg1 = concatenarInt("", $1);
 			oper.arg2 = NULL; 
 			insertaLC($$, finalLC($$), oper);
 			guardaResLC($$, oper.res);			
@@ -203,7 +314,7 @@ expression : expression PLUSOP expression {$$ = $1;
 			Operacion oper;  
 			oper.op = "lw"; 
 			oper.res = getReg(); 
-			oper.arg1 = concatenar("_%s", $1);
+			oper.arg1 = concatenar("_", $1);
 			oper.arg2 = NULL; 
 			insertaLC($$, finalLC($$), oper);
 			guardaResLC($$, oper.res);			
@@ -224,6 +335,13 @@ char *getReg(){
 
 	return retval;
 
+}
+
+char * getSalto(){
+	char* retval;
+	asprintf(&retval, "$l%d", salto_check);
+	salto_check++;
+	return retval;
 }
 
 char * concatenar(char * s1, char * s2){
@@ -270,6 +388,21 @@ void imprimirTabla(Lista tabla){
 		
 	}
 
+}
+
+void imprimirTablaLC(ListaC tabla){
+	printf("Codigo1 contiene %d operaciones\n",longitudLC(tabla));
+
+  	PosicionListaC p = inicioLC(tabla);
+  	while (p != finalLC(tabla)) {
+    Operacion oper = recuperaLC(tabla,p);
+    printf("%s",oper.op);
+    if (oper.res) printf(" %s",oper.res);
+    if (oper.arg1) printf(", %s",oper.arg1);
+    if (oper.arg2) printf(", %s",oper.arg2);
+    printf("\n");
+    p = siguienteLC(tabla,p);
+  }
 }
 
 void escribirSimbenFichero(Lista tabla){

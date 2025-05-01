@@ -80,10 +80,12 @@ void yyerror();
 void introducirSimbolo();
 int perteneceLista();
 void imprimirTabla();
+void imprimirTablaLC();
 void escribirSimbenFichero();
 void escribirCodigenFichero();
 int contCadenas=0; 
 char * getReg();
+char * getSalto();
 char * concatenar();
 char * concatenarInt();
 extern int yylex();
@@ -91,7 +93,7 @@ extern int yylineno;
 int reg = 0;
 int salto_check = 1;
 
-#line 95 "sint.tab.c"
+#line 97 "sint.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -134,11 +136,11 @@ int salto_check = 1;
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 32 "sint.y"
+#line 34 "sint.y"
 
 	#include "listaCodigo.h"
 
-#line 142 "sint.tab.c"
+#line 144 "sint.tab.c"
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -180,13 +182,13 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 26 "sint.y"
+#line 28 "sint.y"
 
 int ent;
 char * cad;
 ListaC codigo;
 
-#line 190 "sint.tab.c"
+#line 192 "sint.tab.c"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -562,12 +564,12 @@ static const yytype_int8 yytranslate[] =
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
-static const yytype_uint8 yyrline[] =
+static const yytype_int16 yyrline[] =
 {
-       0,    51,    51,    51,    53,    53,    54,    54,    55,    57,
-      59,    61,    64,    66,    69,    70,    72,    73,    74,    75,
-      76,    77,    78,    80,    81,    83,    84,    86,    87,    89,
-      99,   109,   119,   129,   181,   189,   190,   200
+       0,    53,    53,    53,    55,    55,    56,    56,    57,    59,
+      61,    63,    66,    68,    71,    72,    74,    85,    86,    87,
+      88,    89,    90,    92,    95,   101,   125,   157,   180,   204,
+     214,   224,   234,   244,   292,   300,   301,   311
 };
 #endif
 
@@ -1416,83 +1418,226 @@ yyreduce:
   switch (yyn)
     {
   case 2:
-#line 51 "sint.y"
-          {tablaSimb = creaLS();}
-#line 1422 "sint.tab.c"
+#line 53 "sint.y"
+          {tablaSimb = creaLS(); tablaCod = creaLC();}
+#line 1424 "sint.tab.c"
     break;
 
   case 3:
-#line 51 "sint.y"
-                                                                                         {imprimirTabla(tablaSimb); escribirSimbenFichero(tablaSimb); liberaLS(tablaSimb);}
-#line 1428 "sint.tab.c"
+#line 53 "sint.y"
+                                                                                                              {imprimirTabla(tablaSimb); escribirSimbenFichero(tablaSimb); liberaLS(tablaSimb);}
+#line 1430 "sint.tab.c"
     break;
 
   case 4:
-#line 53 "sint.y"
+#line 55 "sint.y"
                                 {tipo = VARIABLE;}
-#line 1434 "sint.tab.c"
+#line 1436 "sint.tab.c"
     break;
 
   case 6:
-#line 54 "sint.y"
+#line 56 "sint.y"
                              {tipo = CONSTANTE;}
-#line 1440 "sint.tab.c"
+#line 1442 "sint.tab.c"
     break;
 
   case 10:
-#line 59 "sint.y"
+#line 61 "sint.y"
               { if(!perteneceLista((yyvsp[0].cad))) {introducirSimbolo((yyvsp[0].cad), tipo, 0);}
 										else printf("Ya está en la lista\n");}
-#line 1447 "sint.tab.c"
+#line 1449 "sint.tab.c"
     break;
 
   case 11:
-#line 61 "sint.y"
+#line 63 "sint.y"
                             { if(!perteneceLista((yyvsp[0].cad))) {introducirSimbolo((yyvsp[0].cad), tipo, 0);}
 										else printf("Ya está en la lista\n");}
-#line 1454 "sint.tab.c"
+#line 1456 "sint.tab.c"
     break;
 
   case 12:
-#line 64 "sint.y"
+#line 66 "sint.y"
                                     { if(!perteneceLista((yyvsp[-2].cad))) introducirSimbolo((yyvsp[-2].cad), tipo, 0);
 										else printf("Ya está en la lista\n");}
-#line 1461 "sint.tab.c"
+#line 1463 "sint.tab.c"
     break;
 
   case 13:
-#line 66 "sint.y"
+#line 68 "sint.y"
                                                   { if(!perteneceLista((yyvsp[-2].cad))) {introducirSimbolo((yyvsp[-2].cad), tipo, 0);}
 										else printf("Ya está en la lista\n");}
-#line 1468 "sint.tab.c"
+#line 1470 "sint.tab.c"
     break;
 
   case 16:
-#line 72 "sint.y"
-                                            { if(!perteneceLista((yyvsp[-3].cad))) printf("Esta super mal joder\n");}
-#line 1474 "sint.tab.c"
-    break;
-
-  case 26:
-#line 84 "sint.y"
-                    {tipo = CADENA; contCadenas++; introducirSimbolo((yyvsp[0].cad), tipo, contCadenas);}
-#line 1480 "sint.tab.c"
-    break;
-
-  case 27:
-#line 86 "sint.y"
-               {  if(!perteneceLista((yyvsp[0].cad))) printf("Esta super mal joder\n");}
+#line 74 "sint.y"
+                                            { 
+		if(!perteneceLista((yyvsp[-3].cad))) printf("Esta super mal joder\n");
+		(yyval.codigo) = (yyvsp[-1].codigo);
+		Operacion oper;
+		oper.op = "sw"; 
+		oper.res = recuperaResLC((yyvsp[-1].codigo)); 
+		oper.arg1 = concatenar("_", (yyvsp[-3].cad));
+		oper.arg2 = NULL; 
+		insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper);	
+		imprimirTablaLC((yyval.codigo));
+	}
 #line 1486 "sint.tab.c"
     break;
 
-  case 28:
-#line 87 "sint.y"
-                             {  if(!perteneceLista((yyvsp[0].cad))) printf("Esta super mal joder\n");}
+  case 17:
+#line 85 "sint.y"
+                                   {(yyval.codigo) = (yyvsp[-1].codigo);}
 #line 1492 "sint.tab.c"
     break;
 
-  case 29:
+  case 21:
 #line 89 "sint.y"
+                                                  {(yyval.codigo) = (yyvsp[-2].codigo);}
+#line 1498 "sint.tab.c"
+    break;
+
+  case 23:
+#line 92 "sint.y"
+                        {
+			(yyval.codigo) = (yyvsp[0].codigo);
+		}
+#line 1506 "sint.tab.c"
+    break;
+
+  case 24:
+#line 95 "sint.y"
+                                     {
+			(yyval.codigo) = (yyvsp[-2].codigo);
+			concatenaLC((yyval.codigo),(yyvsp[0].codigo));
+			liberaLC((yyvsp[0].codigo));
+		}
+#line 1516 "sint.tab.c"
+    break;
+
+  case 25:
+#line 101 "sint.y"
+                        {
+				(yyval.codigo) = (yyvsp[0].codigo);
+	
+				Operacion oper1;
+				oper1.op = "li";
+				oper1.res = "$v0";
+				oper1.arg1 = concatenarInt("", 1);
+				oper1.arg2 = NULL;
+				insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper1);
+
+				Operacion oper2;
+				oper2.op = "move";
+				oper2.res = "$a0";
+				oper2.arg1 = recuperaResLC((yyvsp[0].codigo));
+				oper2.arg2 = NULL;
+				insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper2);
+
+				Operacion oper3;
+				oper3.op = "syscall";
+				oper3.res = NULL;
+				oper3.arg1 = NULL;
+				oper3.arg2 = NULL;
+				insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper3);
+	}
+#line 1545 "sint.tab.c"
+    break;
+
+  case 26:
+#line 125 "sint.y"
+                    {tipo = CADENA; contCadenas++; introducirSimbolo((yyvsp[0].cad), tipo, contCadenas);
+				(yyval.codigo) = creaLC();
+				Operacion oper;
+				oper.op = "la";
+				oper.res = getReg();
+				oper.arg1 = concatenarInt("$str", contCadenas);
+				oper.arg2 = NULL;
+				insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper);
+				guardaResLC((yyval.codigo), oper.res);
+				
+				Operacion oper1;
+				oper1.op = "li";
+				oper1.res = "$v0";
+				oper1.arg1 = concatenarInt("", 1);
+				oper1.arg2 = NULL;
+				insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper1);
+
+				Operacion oper2;
+				oper2.op = "move";
+				oper2.res = "$a0";
+				oper2.arg1 = recuperaResLC((yyval.codigo));
+				oper2.arg2 = NULL;
+				insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper2);
+
+				Operacion oper3;
+				oper3.op = "syscall";
+				oper3.res = NULL;
+				oper3.arg1 = NULL;
+				oper3.arg2 = NULL;
+				insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper3);
+	}
+#line 1581 "sint.tab.c"
+    break;
+
+  case 27:
+#line 157 "sint.y"
+               {  if(!perteneceLista((yyvsp[0].cad))) printf("Esta super mal joder\n");
+				(yyval.codigo) = creaLC();
+				Operacion oper1;
+				oper1.op = "li";
+				oper1.res = "$v0";
+				oper1.arg1 = concatenarInt("", 1);
+				oper1.arg2 = NULL;
+				insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper1);
+
+				Operacion oper2;
+				oper2.op = "syscall";
+				oper2.res = NULL;
+				oper2.arg1 = NULL;
+				oper2.arg2 = NULL;
+				insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper2);
+
+				Operacion oper3;
+				oper3.op = "sw"; 
+				oper3.res = "$a0"; 
+				oper3.arg1 = concatenar("_", (yyvsp[0].cad));
+				oper3.arg2 = NULL; 
+				insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper3);
+}
+#line 1609 "sint.tab.c"
+    break;
+
+  case 28:
+#line 180 "sint.y"
+                             {  if(!perteneceLista((yyvsp[0].cad))) printf("Esta super mal joder\n");
+				(yyval.codigo) = (yyvsp[-2].codigo);
+				Operacion oper1;
+				oper1.op = "li";
+				oper1.res = "$v0";
+				oper1.arg1 = concatenarInt("", 1);
+				oper1.arg2 = NULL;
+				insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper1);
+
+				Operacion oper2;
+				oper2.op = "syscall";
+				oper2.res = NULL;
+				oper2.arg1 = NULL;
+				oper2.arg2 = NULL;
+				insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper2);
+
+				Operacion oper3;
+				oper3.op = "sw"; 
+				oper3.res = "$a0"; 
+				oper3.arg1 = concatenar("_", (yyvsp[0].cad));
+				oper3.arg2 = NULL; 
+				insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper3);
+	}
+#line 1637 "sint.tab.c"
+    break;
+
+  case 29:
+#line 204 "sint.y"
                                           {(yyval.codigo) = (yyvsp[-2].codigo);
 			concatenaLC((yyval.codigo), (yyvsp[0].codigo));
 			Operacion oper;
@@ -1503,11 +1648,11 @@ yyreduce:
 			insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper);
 			liberaLC((yyvsp[0].codigo));
 			}
-#line 1507 "sint.tab.c"
+#line 1652 "sint.tab.c"
     break;
 
   case 30:
-#line 99 "sint.y"
+#line 214 "sint.y"
                                        {(yyval.codigo) = (yyvsp[-2].codigo);
 			concatenaLC((yyval.codigo), (yyvsp[0].codigo));
 			Operacion oper;
@@ -1518,11 +1663,11 @@ yyreduce:
 			insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper);
 			liberaLC((yyvsp[0].codigo));
 			}
-#line 1522 "sint.tab.c"
+#line 1667 "sint.tab.c"
     break;
 
   case 31:
-#line 109 "sint.y"
+#line 224 "sint.y"
                                       {(yyval.codigo) = (yyvsp[-2].codigo);
 			concatenaLC((yyval.codigo), (yyvsp[0].codigo));
 			Operacion oper;
@@ -1533,11 +1678,11 @@ yyreduce:
 			insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper);
 			liberaLC((yyvsp[0].codigo));
 			}
-#line 1537 "sint.tab.c"
+#line 1682 "sint.tab.c"
     break;
 
   case 32:
-#line 119 "sint.y"
+#line 234 "sint.y"
                                      {(yyval.codigo) = (yyvsp[-2].codigo);
 			concatenaLC((yyval.codigo), (yyvsp[0].codigo));
 			Operacion oper;
@@ -1548,16 +1693,15 @@ yyreduce:
 			insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper);
 			liberaLC((yyvsp[0].codigo));
 			}
-#line 1552 "sint.tab.c"
+#line 1697 "sint.tab.c"
     break;
 
   case 33:
-#line 129 "sint.y"
+#line 244 "sint.y"
                                                                                     {(yyval.codigo) = (yyvsp[-5].codigo);
 			Operacion oper;
 			oper.op = "beqz";
-			oper.res = concatenarInt("$l", salto_check);
-			salto_check++;
+			oper.res = getSalto();
 			oper.arg1 = NULL;
 			oper.arg2 = NULL;
 			insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper);
@@ -1572,19 +1716,17 @@ yyreduce:
 		
 			Operacion oper3;
 			oper3.op = "b";
-			oper3.res = concatenarInt("$l", salto_check);
-			salto_check++;
+			oper3.res = getSalto();
 			oper3.arg1 = NULL;
 			oper3.arg2 = NULL;
 			insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper3);
 			liberaLC((yyvsp[-3].codigo));
 
 			Operacion oper4; 
-			char * temp = concatenarInt("$l", salto_check-2);
-			oper4.op = concatenar(temp, ":");
+			oper4.op = concatenar(oper.res, ":");
 			oper4.res = NULL;
 			oper4.arg1 = NULL;
-			oper4.arg2 = NULL; 
+			oper4.arg2 = NULL;
 			insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper4);
 		
 			concatenaLC((yyval.codigo),(yyvsp[-1].codigo)); 
@@ -1598,18 +1740,17 @@ yyreduce:
 			liberaLC((yyvsp[-1].codigo)); 
 		
 			Operacion oper6; 
-			temp = concatenarInt("$l", salto_check-1);
-			oper6.op = concatenar(temp, ":");
+			oper6.op = concatenar(oper3.res, ":");
 			oper6.res = NULL;
 			oper6.arg1 = NULL;
 			oper6.arg2 = NULL; 
 			insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper6);
 		}
-#line 1609 "sint.tab.c"
+#line 1750 "sint.tab.c"
     break;
 
   case 34:
-#line 181 "sint.y"
+#line 292 "sint.y"
                                                  {(yyval.codigo) = (yyvsp[0].codigo);
 			Operacion oper;
 			oper.op = "neg";
@@ -1618,48 +1759,48 @@ yyreduce:
 			oper.arg2 = NULL;
 			insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper);
 			}
-#line 1622 "sint.tab.c"
+#line 1763 "sint.tab.c"
     break;
 
   case 35:
-#line 189 "sint.y"
+#line 300 "sint.y"
                                   {(yyval.codigo) = (yyvsp[-1].codigo);}
-#line 1628 "sint.tab.c"
+#line 1769 "sint.tab.c"
     break;
 
   case 36:
-#line 190 "sint.y"
+#line 301 "sint.y"
                             { 
 			(yyval.codigo) = creaLC();
 			Operacion oper;  
 			oper.op = "li"; 
 			oper.res = getReg(); 
-			oper.arg1 = concatenarInt("_%s", (yyvsp[0].ent));
+			oper.arg1 = concatenarInt("", (yyvsp[0].ent));
 			oper.arg2 = NULL; 
 			insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper);
 			guardaResLC((yyval.codigo), oper.res);			
 			}
-#line 1643 "sint.tab.c"
+#line 1784 "sint.tab.c"
     break;
 
   case 37:
-#line 200 "sint.y"
+#line 311 "sint.y"
                      { 
 			if(!perteneceLista((yyvsp[0].cad))) printf("Esta super mal joder\n");
 			(yyval.codigo) = creaLC();
 			Operacion oper;  
 			oper.op = "lw"; 
 			oper.res = getReg(); 
-			oper.arg1 = concatenar("_%s", (yyvsp[0].cad));
+			oper.arg1 = concatenar("_", (yyvsp[0].cad));
 			oper.arg2 = NULL; 
 			insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper);
 			guardaResLC((yyval.codigo), oper.res);			
 			}
-#line 1659 "sint.tab.c"
+#line 1800 "sint.tab.c"
     break;
 
 
-#line 1663 "sint.tab.c"
+#line 1804 "sint.tab.c"
 
       default: break;
     }
@@ -1891,7 +2032,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 213 "sint.y"
+#line 324 "sint.y"
 
 void yyerror()
 {
@@ -1906,6 +2047,13 @@ char *getReg(){
 
 	return retval;
 
+}
+
+char * getSalto(){
+	char* retval;
+	asprintf(&retval, "$l%d", salto_check);
+	salto_check++;
+	return retval;
 }
 
 char * concatenar(char * s1, char * s2){
@@ -1952,6 +2100,21 @@ void imprimirTabla(Lista tabla){
 		
 	}
 
+}
+
+void imprimirTablaLC(ListaC tabla){
+	printf("Codigo1 contiene %d operaciones\n",longitudLC(tabla));
+
+  	PosicionListaC p = inicioLC(tabla);
+  	while (p != finalLC(tabla)) {
+    Operacion oper = recuperaLC(tabla,p);
+    printf("%s",oper.op);
+    if (oper.res) printf(" %s",oper.res);
+    if (oper.arg1) printf(", %s",oper.arg1);
+    if (oper.arg2) printf(", %s",oper.arg2);
+    printf("\n");
+    p = siguienteLC(tabla,p);
+  }
 }
 
 void escribirSimbenFichero(Lista tabla){

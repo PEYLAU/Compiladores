@@ -44,7 +44,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 32 "sint.y"
+#line 34 "sint.y"
 
 	#include "listaCodigo.h"
 
@@ -90,7 +90,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 26 "sint.y"
+#line 28 "sint.y"
 
 int ent;
 char * cad;
