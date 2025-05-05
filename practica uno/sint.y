@@ -50,7 +50,7 @@ ListaC codigo;
 
 %%
 
-program : {tablaSimb = creaLS(); tablaCod = creaLC();} ID LPAREN RPAREN LKEY declarations statement_list RKEY {imprimirTabla(tablaSimb); escribirSimbenFichero(tablaSimb); liberaLS(tablaSimb);}
+program : {tablaSimb = creaLS(); tablaCod = creaLC();} ID LPAREN RPAREN LKEY declarations statement_list RKEY {imprimirTabla(tablaSimb); escribirSimbenFichero(tablaSimb); liberaLS(tablaSimb); imprimirTablaLC($7);}
 
 declarations : declarations VAR {tipo = VARIABLE;} tipo var_list SEMICOLON
 	| declarations CONST {tipo = CONSTANTE;} tipo const_list SEMICOLON
@@ -68,8 +68,12 @@ const_list : ID ASSIGNOP expression { if(!perteneceLista($1)) introducirSimbolo(
 	| const_list COMMA ID ASSIGNOP expression { if(!perteneceLista($3)) {introducirSimbolo($3, tipo, 0);}
 										else printf("Ya está en la lista\n");}
 	
-statement_list : statement_list statement
-	| ;
+statement_list : statement_list statement {
+		$$ = $1;
+		concatenaLC($$, $2);
+		liberaLC($2);
+		}
+	| {$$ = creaLC();};
 
 statement : ID ASSIGNOP expression SEMICOLON{ 
 		if(!perteneceLista($1)) printf("Esta super mal joder\n");
@@ -80,14 +84,120 @@ statement : ID ASSIGNOP expression SEMICOLON{
 		oper.arg1 = concatenar("_", $1);
 		oper.arg2 = NULL; 
 		insertaLC($$, finalLC($$), oper);	
-		imprimirTablaLC($$);
 	}
 	| LKEY statement_list RKEY {$$ = $2;}
-	| IF LPAREN expression RPAREN statement  
-	| IF LPAREN expression RPAREN statement ELSE statement
-	| WHILE LPAREN expression RPAREN statement
-	| PRINT LPAREN print_list RPAREN SEMICOLON{$$ = $3; imprimirTablaLC($$);}
-	| READ LPAREN read_list RPAREN SEMICOLON{$$ = $3; imprimirTablaLC($$);}
+	| IF LPAREN expression RPAREN statement  {
+		
+		$$ = $3;
+		Operacion oper;
+		oper.op = "beqz";
+		oper.res = recuperaResLC($3);
+		oper.arg1 = getSalto();
+		oper.arg2 = NULL;
+		
+		insertaLC($$, finalLC($$), oper);
+		concatenaLC($$, $5);
+		liberaLC($5);
+	
+		Operacion oper1;
+		oper1.op = concatenar(oper.arg1, ":");
+		oper1.res = NULL;
+		oper1.arg1 = NULL;
+		oper1.arg2 = NULL;
+		insertaLC($$, finalLC($$), oper1);
+		
+	}
+	| IF LPAREN expression RPAREN statement ELSE statement{
+
+		$$ = $3; 
+		Operacion oper;
+		oper.op = "beqz";
+		oper.res = recuperaResLC($3);
+		oper.arg1 = getSalto();
+		oper.arg2 = NULL;
+
+		insertaLC($$, finalLC($$), oper); 
+
+		concatenaLC($$, $5); 
+		liberaLC($5); 
+
+		Operacion oper1;
+		oper1.op = "j";
+		oper1.res = getSalto();
+		oper1.arg1 = NULL;
+		oper1.arg2 = NULL;
+
+		insertaLC($$, finalLC($$), oper1);
+
+
+		Operacion oper2;
+		oper2.op = concatenar(oper.arg1, ":");
+		oper2.res = NULL;
+		oper2.arg1 = NULL;
+		oper2.arg2 = NULL;
+		insertaLC($$, finalLC($$), oper2);
+
+		concatenaLC($$, $7); 
+		liberaLC($7);
+
+		Operacion oper3;
+		oper3.op = concatenar(oper1.res, ":");
+		oper3.res = NULL;
+		oper3.arg1 = NULL;
+		oper3.arg2 = NULL;
+		insertaLC($$, finalLC($$), oper3);
+		
+
+		}
+
+	| WHILE LPAREN expression RPAREN statement {
+
+		char * salto1 = getSalto();
+		char * salto2 = getSalto();
+
+		$$ = creaLC();
+		Operacion oper;
+		oper.op = concatenar(salto1, ":");
+		oper.res = NULL;
+		oper.arg1 = NULL;
+		oper.arg2 = NULL;
+		insertaLC($$, finalLC($$), oper);
+
+		concatenaLC($$, $3);
+		liberaLC($3);
+	
+		
+		Operacion oper1;
+		oper1.op = "beqz";
+		oper1.res = recuperaResLC($3);
+		oper1.arg1 = salto2;
+		oper1.arg2 = NULL;
+
+		insertaLC($$, finalLC($$), oper1); 
+
+		concatenaLC($$, $5); 
+		liberaLC($5); 
+
+		Operacion oper2;
+		oper2.op = "j";
+		oper2.res = salto1;
+		oper2.arg1 = NULL;
+		oper2.arg2 = NULL;
+
+		insertaLC($$, finalLC($$), oper2);
+
+		Operacion oper3;
+		oper3.op = concatenar(salto2, ":");
+		oper3.res = NULL;
+		oper3.arg1 = NULL;
+		oper3.arg2 = NULL;
+		insertaLC($$, finalLC($$), oper3);
+
+
+
+	}
+	| PRINT LPAREN print_list RPAREN SEMICOLON{$$ = $3;}
+	| READ LPAREN read_list RPAREN SEMICOLON{$$ = $3;}
 	
 print_list : print_item {
 			$$ = $1;
@@ -122,12 +232,17 @@ print_item : expression {
 				oper3.arg2 = NULL;
 				insertaLC($$, finalLC($$), oper3);
 	}
-	| CHARCHAIN {tipo = CADENA; contCadenas++; introducirSimbolo($1, tipo, contCadenas);
+	| CHARCHAIN {if(!perteneceLista($1)){
+					tipo = CADENA; contCadenas++; introducirSimbolo($1, tipo, contCadenas);
+				}
+
+				Simbolo simb = recuperaLS(tablaSimb, buscaLS(tablaSimb, $1));
+
 				$$ = creaLC();
 				Operacion oper;
 				oper.op = "la";
 				oper.res = getReg();
-				oper.arg1 = concatenarInt("$str", contCadenas);
+				oper.arg1 = concatenarInt("$str", simb.valor);
 				oper.arg2 = NULL;
 				insertaLC($$, finalLC($$), oper);
 				guardaResLC($$, oper.res);

@@ -16,13 +16,7 @@ $str5:
 	.asciiz "c = "
 
 $str6:
-	.asciiz "\n"
-
-$str7:
 	.asciiz "Final"
-
-$str8:
-	.asciiz "\n"
 
 _a:
 	.word 0
