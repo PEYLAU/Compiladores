@@ -24,6 +24,7 @@ extern int yylex();
 extern int yylineno;
 int reg = 0;
 int salto_check = 1;
+int regs[10] = {0,0,0,0,0,0,0,0,0,0};
 %}
 %union{
 int ent;
@@ -44,29 +45,79 @@ ListaC codigo;
 
 
 %type <cad> program ID CHARCHAIN
-%type <codigo> expression statement_list statement print_list print_item read_list const_list
+%type <codigo> expression statement_list statement print_list print_item read_list const_list declarations var_list
 
 
 
 %%
 
-program : {tablaSimb = creaLS(); tablaCod = creaLC();} ID LPAREN RPAREN LKEY declarations statement_list RKEY {imprimirTabla(tablaSimb); escribirSimbenFichero(tablaSimb); liberaLS(tablaSimb); imprimirTablaLC($7);}
+program : {tablaSimb = creaLS(); tablaCod = creaLC();} ID LPAREN RPAREN LKEY declarations statement_list RKEY {imprimirTabla(tablaSimb); escribirSimbenFichero(tablaSimb); concatenaLC(tablaCod, $6); concatenaLC(tablaCod, $7); imprimirTablaLC(tablaCod); escribirCodigenFichero(tablaCod); liberaLS(tablaSimb); liberaLC(tablaCod);}
 
-declarations : declarations VAR {tipo = VARIABLE;} tipo var_list SEMICOLON
-	| declarations CONST {tipo = CONSTANTE;} tipo const_list SEMICOLON
-	| ;
+declarations : declarations VAR {tipo = VARIABLE;} tipo var_list SEMICOLON	{
+	$$ = $1;
+	concatenaLC($$, $5);
+	liberaLC($5);
+}
+	| declarations CONST {tipo = CONSTANTE;} tipo const_list SEMICOLON{
+		$$ = $1;
+		concatenaLC($$, $5);
+		liberaLC($5);
+	}
+	| {$$ = creaLC();};
 	
 tipo : INT;
 
 var_list : ID { if(!perteneceLista($1)) {introducirSimbolo($1, tipo, 0);}
-										else printf("Ya está en la lista\n");}
+										else printf("Ya está en la lista\n");
+										$$ = creaLC();}
 	| var_list COMMA ID { if(!perteneceLista($3)) {introducirSimbolo($3, tipo, 0);}
-										else printf("Ya está en la lista\n");}
+										else printf("Ya está en la lista\n");
+										$$ = creaLC();
+										}
 
 const_list : ID ASSIGNOP expression { if(!perteneceLista($1)) introducirSimbolo($1, tipo, 0);
-										else printf("Ya está en la lista\n");}
+										else printf("Ya está en la lista\n");
+										$$ = $3;
+										
+										Operacion oper;
+										oper.op = "move";
+										oper.res = getReg();
+										oper.arg1 = recuperaResLC($3);
+										oper.arg2 = NULL;
+										insertaLC($$, finalLC($$), oper);
+
+										Operacion oper1;
+										oper1.op = "sw";
+										oper1.res = oper.res;
+										oper1.arg1 =  concatenar("_", $1);
+										oper1.arg2 = NULL;
+										insertaLC($$, finalLC($$), oper1);
+									
+										}
 	| const_list COMMA ID ASSIGNOP expression { if(!perteneceLista($3)) {introducirSimbolo($3, tipo, 0);}
-										else printf("Ya está en la lista\n");}
+										else printf("Ya está en la lista\n");
+										
+										$$ = $1;
+										concatenaLC($$, $5);
+										
+										Operacion oper;
+										oper.op = "move";
+										oper.res = getReg();
+										oper.arg1 = recuperaResLC($5);
+										oper.arg2 = NULL;
+										insertaLC($$, finalLC($$), oper);
+
+										liberaLC($5);
+
+										Operacion oper1;
+										oper1.op = "sw";
+										oper1.res = oper.res;
+										oper1.arg1 =  concatenar("_", $3);
+										oper1.arg2 = NULL;
+										insertaLC($$, finalLC($$), oper1);
+									
+										
+										}
 	
 statement_list : statement_list statement {
 		$$ = $1;
@@ -76,7 +127,7 @@ statement_list : statement_list statement {
 	| {$$ = creaLC();};
 
 statement : ID ASSIGNOP expression SEMICOLON{ 
-		if(!perteneceLista($1)) printf("Esta super mal joder\n");
+		if(!perteneceLista($1)) printf("ID no está en la lista\n");
 		$$ = $3;
 		Operacion oper;
 		oper.op = "sw"; 
@@ -231,6 +282,7 @@ print_item : expression {
 				oper3.arg1 = NULL;
 				oper3.arg2 = NULL;
 				insertaLC($$, finalLC($$), oper3);
+
 	}
 	| CHARCHAIN {if(!perteneceLista($1)){
 					tipo = CADENA; contCadenas++; introducirSimbolo($1, tipo, contCadenas);
@@ -267,9 +319,11 @@ print_item : expression {
 				oper3.arg1 = NULL;
 				oper3.arg2 = NULL;
 				insertaLC($$, finalLC($$), oper3);
+
+				liberaReg($$);
 	}
 	
-read_list : ID {  if(!perteneceLista($1)) printf("Esta super mal joder\n");
+read_list : ID {  if(!perteneceLista($1)) printf("ID no está en la lista\n");
 				$$ = creaLC();
 				Operacion oper1;
 				oper1.op = "li";
@@ -292,7 +346,7 @@ read_list : ID {  if(!perteneceLista($1)) printf("Esta super mal joder\n");
 				oper3.arg2 = NULL; 
 				insertaLC($$, finalLC($$), oper3);
 }
-	| read_list COMMA ID {  if(!perteneceLista($3)) printf("Esta super mal joder\n");
+	| read_list COMMA ID {  if(!perteneceLista($3)) printf("ID no está en la lista\n");
 				$$ = $1;
 				Operacion oper1;
 				oper1.op = "li";
@@ -324,6 +378,7 @@ expression : expression PLUSOP expression {$$ = $1;
 			oper.arg1 = recuperaResLC($1);
 			oper.arg2 = recuperaResLC($3);
 			insertaLC($$, finalLC($$), oper);
+			liberaReg($3);
 			liberaLC($3);
 			}
         | expression MINUSOP expression{$$ = $1;
@@ -334,6 +389,7 @@ expression : expression PLUSOP expression {$$ = $1;
 			oper.arg1 = recuperaResLC($1);
 			oper.arg2 = recuperaResLC($3);
 			insertaLC($$, finalLC($$), oper);
+			liberaReg($3);
 			liberaLC($3);
 			}
         | expression MULTOP expression{$$ = $1;
@@ -344,6 +400,7 @@ expression : expression PLUSOP expression {$$ = $1;
 			oper.arg1 = recuperaResLC($1);
 			oper.arg2 = recuperaResLC($3);
 			insertaLC($$, finalLC($$), oper);
+			liberaReg($3);
 			liberaLC($3);
 			}
        	| expression DIVOP expression{$$ = $1;
@@ -354,6 +411,7 @@ expression : expression PLUSOP expression {$$ = $1;
 			oper.arg1 = recuperaResLC($1);
 			oper.arg2 = recuperaResLC($3);
 			insertaLC($$, finalLC($$), oper);
+			liberaReg($3);
 			liberaLC($3);
 			}
 		| LPAREN expression INTERROGANT expression TWODOTS expression RPAREN{$$ = $2;
@@ -378,6 +436,7 @@ expression : expression PLUSOP expression {$$ = $1;
 			oper3.arg1 = NULL;
 			oper3.arg2 = NULL;
 			insertaLC($$, finalLC($$), oper3);
+			liberaReg($4);
 			liberaLC($4);
 
 			Operacion oper4; 
@@ -395,6 +454,7 @@ expression : expression PLUSOP expression {$$ = $1;
 			oper5.arg1 = recuperaResLC($6);
 			oper5.arg2 = NULL;
 			insertaLC($$, finalLC($$), oper5);
+			liberaReg($6);
 			liberaLC($6); 
 		
 			Operacion oper6; 
@@ -424,7 +484,7 @@ expression : expression PLUSOP expression {$$ = $1;
 			guardaResLC($$, oper.res);			
 			}
 		| ID { 
-			if(!perteneceLista($1)) printf("Esta super mal joder\n");
+			if(!perteneceLista($1)) printf("ID no está en la lista\n");
 			$$ = creaLC();
 			Operacion oper;  
 			oper.op = "lw"; 
@@ -443,12 +503,28 @@ printf("Se ha producido un error en esta expresion en la linea %d\n", yylineno);
 }
 
 char *getReg(){
+
+
+	int i = 0;
+	while(regs[i] != 0){
+		i = (i+1) % 10;
+	}
+	regs[i] = 1;
 	char* retval;
-	asprintf(&retval, "$t%d", reg); 
+	asprintf(&retval, "$t%d", i); 
 
 	reg++;
 
 	return retval;
+
+}
+
+void liberaReg(ListaC l){
+
+	char* regchar = recuperaResLC(l);
+	int reg = regchar[2] -'0';
+	print(reg);
+
 
 }
 
@@ -561,7 +637,7 @@ void escribirSimbenFichero(Lista tabla){
 }
 
 void escribirCodigenFichero(ListaC tabla){
-	FILE * f = fopen("codigo", "w");
+	FILE * f = fopen("ensamb", "ab");
 	if(f == NULL){
 		printf("EL fichero no existe");
 	}
@@ -575,7 +651,29 @@ void escribirCodigenFichero(ListaC tabla){
 	
 	for(int i = 0; i < n; i++){
 		Operacion oper = recuperaLC(tabla, in);
-		fprintf(f, "%s %s %s %s\n", oper.op, oper.res, oper.arg1, oper.arg2);
+		
+		if(oper.res == NULL && oper.arg1 == NULL && oper.arg2 == NULL && oper.op != "syscall"){
+			fprintf(f, "%s ", oper.op);
+		}
+		else{
+			fprintf(f, "\t%s ", oper.op);
+		}
+
+		if(oper.res != NULL){
+			fprintf(f, "%s ", oper.res);
+		}
+
+		if(oper.arg1 != NULL){
+			fprintf(f, "%s ", oper.arg1);
+		}
+
+		if(oper.arg2 != NULL){
+			fprintf(f, "%s ", oper.arg2);
+		}
+
+		fprintf(f, "\n");
+		
+		in = siguienteLC(tabla, in);
 	}
 	
 

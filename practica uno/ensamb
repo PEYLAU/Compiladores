@@ -27,3 +27,76 @@ _b:
 _c:
 	.word 0
 
+	.globl main
+
+main:
+
+	li $t0 0 
+	move $t1 $t0 
+	sw $t1 _a 
+	li $t2 0 
+	move $t3 $t2 
+	sw $t3 _b 
+	la $t4 $str1 
+	li $v0 1 
+	move $a0 $t4 
+	syscall 
+	li $t5 5 
+	li $t6 2 
+	add $t5 $t5 $t6 
+	li $t7 2 
+	sub $t5 $t5 $t7 
+	sw $t5 _c 
+	lw $t8 _a 
+	beqz $t8 $l5 
+	la $t9 $str2 
+	li $v0 1 
+	move $a0 $t9 
+	syscall 
+	la $t10 $str3 
+	li $v0 1 
+	move $a0 $t10 
+	syscall 
+	j $l6 
+$l5: 
+	lw $t10 _b 
+	beqz $t10 $l3 
+	la $t10 $str4 
+	li $v0 1 
+	move $a0 $t10 
+	syscall 
+	j $l4 
+$l3: 
+$l1: 
+	lw $t10 _c 
+	beqz $t10 $l2 
+	la $t10 $str5 
+	li $v0 1 
+	move $a0 $t10 
+	syscall 
+	lw $t10 _c 
+	li $v0 1 
+	move $a0 $t10 
+	syscall 
+	la $t10 $str3 
+	li $v0 1 
+	move $a0 $t10 
+	syscall 
+	lw $t10 _c 
+	li $t10 2 
+	sub $t10 $t10 $t10 
+	li $t10 1 
+	add $t10 $t10 $t10 
+	sw $t10 _c 
+	j $l1 
+$l2: 
+$l4: 
+$l6: 
+	la $t10 $str6 
+	li $v0 1 
+	move $a0 $t10 
+	syscall 
+	la $t10 $str3 
+	li $v0 1 
+	move $a0 $t10 
+	syscall 

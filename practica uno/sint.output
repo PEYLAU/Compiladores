@@ -108,7 +108,7 @@ No terminales con las reglas donde aparecen
     $@1 (33)
         on left: 1
         on right: 2
-    declarations (34)
+    declarations <codigo> (34)
         on left: 4 6 7
         on right: 2 4 6
     $@2 (35)
@@ -120,7 +120,7 @@ No terminales con las reglas donde aparecen
     tipo (37)
         on left: 8
         on right: 4 6
-    var_list (38)
+    var_list <codigo> (38)
         on left: 9 10
         on right: 4 10
     const_list <codigo> (39)
