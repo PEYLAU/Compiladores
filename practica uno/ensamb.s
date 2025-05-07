@@ -1,5 +1,3 @@
-	.data
-
 $str1:
 	.asciiz "Inicio del programa\n"
 

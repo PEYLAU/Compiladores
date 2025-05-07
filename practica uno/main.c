@@ -9,25 +9,21 @@ extern int yylex();
 extern int yyparse();
 int err = 0;
 FILE *fich;
-int main()
+int main(int argc, char * argv[])
 {
-    int i;
-    char nombre[80];
-    //printf("INTRODUCE NOMBRE DE FICHERO FUENTE:");
-    //scanf("%s",nombre);
-	//printf("\n");
-    if ((fich=fopen("entrada","r"))==NULL) {
+    
+    if(argc < 2){
+        fprintf(stderr, "FALTAN ARGUMENTOS. INCLUYE NOMBRE DE FICHERO DE ENTRADA\n");
+        return 1;
+    }
+
+   
+    if ((fich=fopen(argv[1],"r"))== NULL) {
         printf("***ERROR, no puedo abrir el fichero\n");
         exit(1);		}
         
     yyin=fich;
-    /*
-    while (i=yylex()) {
-			printf("TOKEN %d ",i); 
-			printf("LEXEMA %s  LONGITUD %d\n",yytext,yyleng);
-       }
-     
-     */
+ 
     yyparse();
     fclose(fich);
     return 0;

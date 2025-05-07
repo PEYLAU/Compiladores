@@ -1,6 +1,5 @@
 prueba() {
 const int a=0, b=0;
-const int a=0;
 var int c;
 print ("Inicio del programa\n");
 c = 5+2-2;

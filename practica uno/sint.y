@@ -54,7 +54,7 @@ ListaC codigo;
 
 %%
 
-program : {tablaSimb = creaLS(); tablaCod = creaLC();} ID LPAREN RPAREN LKEY declarations statement_list RKEY {imprimirTabla(tablaSimb); escribirSimbenFichero(tablaSimb); concatenaLC(tablaCod, $6); concatenaLC(tablaCod, $7); insertafinalLC(tablaCod); imprimirTablaLC(tablaCod); escribirCodigenFichero(tablaCod); liberaLS(tablaSimb); liberaLC(tablaCod);}
+program : {tablaSimb = creaLS(); tablaCod = creaLC();} ID LPAREN RPAREN LKEY declarations statement_list RKEY {escribirSimbenFichero(tablaSimb); concatenaLC(tablaCod, $6); concatenaLC(tablaCod, $7); insertafinalLC(tablaCod); escribirCodigenFichero(tablaCod); liberaLS(tablaSimb); liberaLC(tablaCod);}
 
 declarations : declarations VAR {tipo = VARIABLE;} tipo var_list SEMICOLON	{
 	$$ = $1;
@@ -519,14 +519,11 @@ void liberaReg(ListaC l){
 
 	char* regchar = recuperaResLC(l);
 	int reg = regchar[2] -'0';
-	imprimirTablaLC(l);
-	printf(": %d\n", reg);
 	regs[reg] = 0;
 }
 
 void liberaRegLit(char * r){
 	int reg = r[2]-'0';
-	printf("%d", reg);
 	regs[reg] = 0;
 
 }
@@ -600,13 +597,6 @@ void imprimirTablaLC(ListaC tabla){
 }
 
 void escribirSimbenFichero(Lista tabla){
-	FILE * f = fopen("ensamb.s", "w");
-	if(f == NULL){
-		printf("EL fichero no existe");
-	}
-	else{
-		fprintf(f, "\t.data\n\n");
-	}
 	
 	PosicionLista in = inicioLS(tabla);
 	int n = longitudLS(tabla);
@@ -614,8 +604,8 @@ void escribirSimbenFichero(Lista tabla){
 	for(int i = 0; i < n; i++){
 		Simbolo s = recuperaLS(tabla, in);
 		if(s.tipo == CADENA){
-			fprintf(f, "$str%d:\n", s.valor);
-			fprintf(f, "\t.asciiz %s\n\n", s.nombre);
+			printf("$str%d:\n", s.valor);
+			printf("\t.asciiz %s\n\n", s.nombre);
 		
 		}
 		in = siguienteLS(tabla, in);
@@ -627,15 +617,14 @@ void escribirSimbenFichero(Lista tabla){
 	for(int i = 0; i < n; i++){
 		Simbolo s = recuperaLS(tabla, in);
 		if(s.tipo != CADENA){
-			fprintf(f, "_%s:\n", s.nombre);
-			fprintf(f, "\t.word 0\n\n");
+			printf("_%s:\n", s.nombre);
+			printf("\t.word 0\n\n");
 		
 		}
 		in = siguienteLS(tabla, in);
 	}
 	
-	
-	fclose(f);
+
 
 }
 
@@ -657,15 +646,11 @@ void insertafinalLC(ListaC t){
 }
 
 void escribirCodigenFichero(ListaC tabla){
-	FILE * f = fopen("ensamb.s", "ab");
-	if(f == NULL){
-		printf("EL fichero no existe");
-	}
-	else{
-		fprintf(f, "\t.text\n");
-		fprintf(f, "\t.globl main\n\n");
-		fprintf(f, "main:\n\n");
-	}
+	
+
+	printf("\t.text\n");
+	printf("\t.globl main\n\n");
+	printf("main:\n\n");
 	
 	PosicionListaC in = inicioLC(tabla);
 	int n = longitudLC(tabla);
@@ -674,25 +659,25 @@ void escribirCodigenFichero(ListaC tabla){
 		Operacion oper = recuperaLC(tabla, in);
 		
 		if(oper.res == NULL && oper.arg1 == NULL && oper.arg2 == NULL && oper.op != "syscall"){
-			fprintf(f, "%s ", oper.op);
+			printf("%s ", oper.op);
 		}
 		else{
-			fprintf(f, "\t%s ", oper.op);
+			printf("\t%s ", oper.op);
 		}
 
 		if(oper.res != NULL){
-			fprintf(f, "%s ", oper.res);
+			printf("%s ", oper.res);
 		}
 
 		if(oper.arg1 != NULL){
-			fprintf(f, "%s ", oper.arg1);
+			printf("%s ", oper.arg1);
 		}
 
 		if(oper.arg2 != NULL){
-			fprintf(f, "%s ", oper.arg2);
+			printf("%s ", oper.arg2);
 		}
 
-		fprintf(f, "\n");
+		printf("\n");
 		
 		in = siguienteLC(tabla, in);
 	}
@@ -700,6 +685,5 @@ void escribirCodigenFichero(ListaC tabla){
 
 	
 	
-	fclose(f);
 
 }
