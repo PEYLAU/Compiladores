@@ -13,9 +13,12 @@ $str4:
 	.asciiz "No a y b\n"
 
 $str5:
-	.asciiz "c = "
+	.asciiz "POLLA\n"
 
 $str6:
+	.asciiz "c = "
+
+$str7:
 	.asciiz "Final"
 
 _a:
@@ -27,6 +30,7 @@ _b:
 _c:
 	.word 0
 
+	.text
 	.globl main
 
 main:
@@ -67,6 +71,9 @@ $l1:
 	la $a0 $str5 
 	li $v0 4 
 	syscall 
+	la $a0 $str6 
+	li $v0 4 
+	syscall 
 	lw $t3 _c 
 	li $v0 1 
 	move $a0 $t3 
@@ -84,7 +91,7 @@ $l1:
 $l2: 
 $l4: 
 $l6: 
-	la $a0 $str6 
+	la $a0 $str7 
 	li $v0 4 
 	syscall 
 	la $a0 $str3 

@@ -15,6 +15,9 @@ void imprimirTabla();
 void imprimirTablaLC();
 void escribirSimbenFichero();
 void escribirCodigenFichero();
+void insertafinalLC();
+void liberaReg();
+void liberaRegLit();
 int contCadenas=0; 
 char * getReg();
 char * getSalto();
@@ -51,7 +54,7 @@ ListaC codigo;
 
 %%
 
-program : {tablaSimb = creaLS(); tablaCod = creaLC();} ID LPAREN RPAREN LKEY declarations statement_list RKEY {imprimirTabla(tablaSimb); escribirSimbenFichero(tablaSimb); concatenaLC(tablaCod, $6); concatenaLC(tablaCod, $7); imprimirTablaLC(tablaCod); escribirCodigenFichero(tablaCod); liberaLS(tablaSimb); liberaLC(tablaCod);}
+program : {tablaSimb = creaLS(); tablaCod = creaLC();} ID LPAREN RPAREN LKEY declarations statement_list RKEY {imprimirTabla(tablaSimb); escribirSimbenFichero(tablaSimb); concatenaLC(tablaCod, $6); concatenaLC(tablaCod, $7); insertafinalLC(tablaCod); imprimirTablaLC(tablaCod); escribirCodigenFichero(tablaCod); liberaLS(tablaSimb); liberaLC(tablaCod);}
 
 declarations : declarations VAR {tipo = VARIABLE;} tipo var_list SEMICOLON	{
 	$$ = $1;
@@ -79,19 +82,15 @@ const_list : ID ASSIGNOP expression { if(!perteneceLista($1)) introducirSimbolo(
 										else printf("Ya está en la lista\n");
 										$$ = $3;
 										
-										Operacion oper;
-										oper.op = "move";
-										oper.res = getReg();
-										oper.arg1 = recuperaResLC($3);
-										oper.arg2 = NULL;
-										insertaLC($$, finalLC($$), oper);
-
+									
 										Operacion oper1;
 										oper1.op = "sw";
-										oper1.res = oper.res;
+										oper1.res = recuperaResLC($3);
 										oper1.arg1 =  concatenar("_", $1);
 										oper1.arg2 = NULL;
 										insertaLC($$, finalLC($$), oper1);
+
+										liberaReg($3);
 									
 										}
 	| const_list COMMA ID ASSIGNOP expression { if(!perteneceLista($3)) {introducirSimbolo($3, tipo, 0);}
@@ -100,22 +99,17 @@ const_list : ID ASSIGNOP expression { if(!perteneceLista($1)) introducirSimbolo(
 										$$ = $1;
 										concatenaLC($$, $5);
 										
-										Operacion oper;
-										oper.op = "move";
-										oper.res = getReg();
-										oper.arg1 = recuperaResLC($5);
-										oper.arg2 = NULL;
-										insertaLC($$, finalLC($$), oper);
-
-										liberaLC($5);
+										
 
 										Operacion oper1;
 										oper1.op = "sw";
-										oper1.res = oper.res;
+										oper1.res = recuperaResLC($5);
 										oper1.arg1 =  concatenar("_", $3);
 										oper1.arg2 = NULL;
 										insertaLC($$, finalLC($$), oper1);
-									
+
+										liberaReg($5);
+										liberaLC($5);
 										
 										}
 	
@@ -135,6 +129,7 @@ statement : ID ASSIGNOP expression SEMICOLON{
 		oper.arg1 = concatenar("_", $1);
 		oper.arg2 = NULL; 
 		insertaLC($$, finalLC($$), oper);	
+		liberaRegLit(oper.res);
 	}
 	| LKEY statement_list RKEY {$$ = $2;}
 	| IF LPAREN expression RPAREN statement  {
@@ -146,8 +141,11 @@ statement : ID ASSIGNOP expression SEMICOLON{
 		oper.arg1 = getSalto();
 		oper.arg2 = NULL;
 		
+		liberaReg($3);
 		insertaLC($$, finalLC($$), oper);
 		concatenaLC($$, $5);
+		
+		
 		liberaLC($5);
 	
 		Operacion oper1;
@@ -157,6 +155,7 @@ statement : ID ASSIGNOP expression SEMICOLON{
 		oper1.arg2 = NULL;
 		insertaLC($$, finalLC($$), oper1);
 		
+
 	}
 	| IF LPAREN expression RPAREN statement ELSE statement{
 
@@ -168,6 +167,8 @@ statement : ID ASSIGNOP expression SEMICOLON{
 		oper.arg2 = NULL;
 
 		insertaLC($$, finalLC($$), oper); 
+
+		liberaReg($3);
 
 		concatenaLC($$, $5); 
 		liberaLC($5); 
@@ -215,8 +216,7 @@ statement : ID ASSIGNOP expression SEMICOLON{
 		insertaLC($$, finalLC($$), oper);
 
 		concatenaLC($$, $3);
-		liberaLC($3);
-	
+		
 		
 		Operacion oper1;
 		oper1.op = "beqz";
@@ -224,6 +224,8 @@ statement : ID ASSIGNOP expression SEMICOLON{
 		oper1.arg1 = salto2;
 		oper1.arg2 = NULL;
 
+		liberaReg($3);
+		liberaLC($3);
 		insertaLC($$, finalLC($$), oper1); 
 
 		concatenaLC($$, $5); 
@@ -293,7 +295,7 @@ print_item : expression {
 				$$ = creaLC();
 				Operacion oper;
 				oper.op = "la";
-				oper.res = getReg();
+				oper.res = "$a0";
 				oper.arg1 = concatenarInt("$str", simb.valor);
 				oper.arg2 = NULL;
 				insertaLC($$, finalLC($$), oper);
@@ -302,16 +304,11 @@ print_item : expression {
 				Operacion oper1;
 				oper1.op = "li";
 				oper1.res = "$v0";
-				oper1.arg1 = concatenarInt("", 1);
+				oper1.arg1 = concatenarInt("", 4);
 				oper1.arg2 = NULL;
 				insertaLC($$, finalLC($$), oper1);
 
-				Operacion oper2;
-				oper2.op = "move";
-				oper2.res = "$a0";
-				oper2.arg1 = recuperaResLC($$);
-				oper2.arg2 = NULL;
-				insertaLC($$, finalLC($$), oper2);
+		
 
 				Operacion oper3;
 				oper3.op = "syscall";
@@ -320,7 +317,6 @@ print_item : expression {
 				oper3.arg2 = NULL;
 				insertaLC($$, finalLC($$), oper3);
 
-				liberaReg($$);
 	}
 	
 read_list : ID {  if(!perteneceLista($1)) printf("ID no está en la lista\n");
@@ -341,7 +337,7 @@ read_list : ID {  if(!perteneceLista($1)) printf("ID no está en la lista\n");
 
 				Operacion oper3;
 				oper3.op = "sw"; 
-				oper3.res = "$a0"; 
+				oper3.res = "$v0"; 
 				oper3.arg1 = concatenar("_", $1);
 				oper3.arg2 = NULL; 
 				insertaLC($$, finalLC($$), oper3);
@@ -523,8 +519,15 @@ void liberaReg(ListaC l){
 
 	char* regchar = recuperaResLC(l);
 	int reg = regchar[2] -'0';
-	print(reg);
+	imprimirTablaLC(l);
+	printf(": %d\n", reg);
+	regs[reg] = 0;
+}
 
+void liberaRegLit(char * r){
+	int reg = r[2]-'0';
+	printf("%d", reg);
+	regs[reg] = 0;
 
 }
 
@@ -597,7 +600,7 @@ void imprimirTablaLC(ListaC tabla){
 }
 
 void escribirSimbenFichero(Lista tabla){
-	FILE * f = fopen("ensamb", "w");
+	FILE * f = fopen("ensamb.s", "w");
 	if(f == NULL){
 		printf("EL fichero no existe");
 	}
@@ -636,12 +639,30 @@ void escribirSimbenFichero(Lista tabla){
 
 }
 
+void insertafinalLC(ListaC t){
+	Operacion oper;
+	oper.op = "li";
+	oper.res = "$v0";
+	oper.arg1 = concatenarInt("", 10);
+	oper.arg2 = NULL;
+	insertaLC(t, finalLC(t), oper);
+
+	Operacion oper2;
+	oper2.op = "syscall";
+	oper2.res = NULL;	
+	oper2.arg1 = NULL;
+	oper2.arg2 = NULL;
+	insertaLC(t, finalLC(t), oper2);
+
+}
+
 void escribirCodigenFichero(ListaC tabla){
-	FILE * f = fopen("ensamb", "ab");
+	FILE * f = fopen("ensamb.s", "ab");
 	if(f == NULL){
 		printf("EL fichero no existe");
 	}
 	else{
+		fprintf(f, "\t.text\n");
 		fprintf(f, "\t.globl main\n\n");
 		fprintf(f, "main:\n\n");
 	}
