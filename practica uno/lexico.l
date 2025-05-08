@@ -19,7 +19,7 @@ else 										return ELSE;
 while 										return WHILE;
 print 										return PRINT; 
 read										return READ;
-{digito}                                    {if(atoll(yytext) > 2147483648) printf("Error léxico en la línea %d, entero fuera de rango", yylineno); yylval.ent=atoi(yytext);return INTLITERAL;}
+{digito}+                                    {if(atoll(yytext) > 2147483648) printf("Error léxico en la línea %d, entero fuera de rango", yylineno); yylval.ent=atoi(yytext);return INTLITERAL;}
 "/*"([^*]|[*]+[^*/])*[*]*"*/"				return COMMENT1;
 "//"(.*)\n									return COMMENT2;
 \"([^"\n\\]|\\.)*\"						    yylval.cad=strdup(yytext);return CHARCHAIN;

@@ -1,0 +1,3 @@
+prueba2() {
+    const int jamon = 5+2;
+}

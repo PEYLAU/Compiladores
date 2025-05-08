@@ -360,7 +360,7 @@ read_list : ID {  if(!perteneceLista($1)) printf("ID no está en la lista\n");
 
 				Operacion oper3;
 				oper3.op = "sw"; 
-				oper3.res = "$a0"; 
+				oper3.res = "$v0"; 
 				oper3.arg1 = concatenar("_", $3);
 				oper3.arg2 = NULL; 
 				insertaLC($$, finalLC($$), oper3);
@@ -600,6 +600,8 @@ void escribirSimbenFichero(Lista tabla){
 	
 	PosicionLista in = inicioLS(tabla);
 	int n = longitudLS(tabla);
+
+	printf("\t.data\n\n");
 	
 	for(int i = 0; i < n; i++){
 		Simbolo s = recuperaLS(tabla, in);

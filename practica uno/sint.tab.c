@@ -1846,7 +1846,7 @@ yyreduce:
 
 				Operacion oper3;
 				oper3.op = "sw"; 
-				oper3.res = "$a0"; 
+				oper3.res = "$v0"; 
 				oper3.arg1 = concatenar("_", (yyvsp[0].cad));
 				oper3.arg2 = NULL; 
 				insertaLC((yyval.codigo), finalLC((yyval.codigo)), oper3);
@@ -2365,6 +2365,8 @@ void escribirSimbenFichero(Lista tabla){
 	
 	PosicionLista in = inicioLS(tabla);
 	int n = longitudLS(tabla);
+
+	printf("\t.data\n\n");
 	
 	for(int i = 0; i < n; i++){
 		Simbolo s = recuperaLS(tabla, in);
